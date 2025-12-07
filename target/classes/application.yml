@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: Financial-Database
+  #数据库的连接信息
+  datasource:
+    url: jdbc:mysql://localhost:3306/financial_database
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: admin
+    password: 1234
+
+#mybatis的相关配置
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 开启驼峰命名映射的开关
+    map-underscore-to-camel-case: true
+#服务器的配置(0.0.0.0 表示监听所有网络接口，这样其他设备可以通过本机局域网 IP 访问。)
+server:
+  port: 8080
+  address: 0.0.0.0

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>财务数据管理系统</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+h1 { margin-bottom: 20px; }
+button { padding: 8px 16px; margin-right: 10px; cursor: pointer; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+th { background: #f5f5f5; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); }
+.modal-content { background:#fff; padding:20px; width:300px; margin:100px auto; border-radius:6px; display:flex; flex-direction:column; gap:10px; }
+</style>
+</head>
+<body>
+<h1>财务数据管理系统</h1>
+<button onclick="openSearchModal()" style="background:#0af;color:#fff;">参数查询</button>
+<button onclick="openInsertModal()" style="background:#0a0;color:#fff;">插入</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th><th>日期</th><th>类型</th><th>金额</th><th>交易对象</th><th>备注</th><th>操作</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<div style="margin-top:15px;text-align:center;">
+<button onclick="prevPage()">上一页</button>
+<span id="pageInfo"></span>
+<button onclick="nextPage()">下一页</button>
+</div>
+
+<!-- 查询弹窗 -->
+<div id="searchModal" class="modal">
+<div class="modal-content">
+<h3>参数查询</h3>
+<label>日期</label><input id="s_date" type="date">
+<label>类型</label>
+<select id="s_type"><option value="">不限</option><option value="income">收入</option><option value="outcome">支出</option></select>
+<label>金额</label><input id="s_amount" type="number">
+<label>交易对象</label><input id="s_dealName" type="text">
+<label>备注</label><input id="s_remark" type="text">
+<button onclick="submitSearch()">查询</button>
+<button onclick="closeSearchModal()">取消</button>
+</div>
+</div>
+
+<!-- 插入弹窗 -->
+<div id="insertModal" class="modal">
+<div class="modal-content">
+<h3>插入信息</h3>
+<label>日期</label><input id="i_date" type="date">
+<label>类型</label><select id="i_type"><option value="income">收入</option><option value="outcome">支出</option></select>
+<label>金额</label><input id="i_amount" type="number">
+<label>交易对象</label><input id="i_dealName" type="text">
+<label>备注</label><input id="i_remark" type="text">
+<button onclick="submitInsert()">提交</button>
+<button onclick="closeInsertModal()">取消</button>
+</div>
+</div>
+
+<!-- 修改弹窗 -->
+<div id="modifyModal" class="modal">
+<div class="modal-content">
+<h3>修改信息</h3>
+<label>ID</label><input id="modifyId" disabled>
+<label>日期</label><input id="modifyDate" type="date">
+<label>类型</label><select id="modifyType"><option value="income">收入</option><option value="outcome">支出</option></select>
+<label>金额</label><input id="modifyAmount" type="number">
+<label>交易对象</label><input id="modifyDealName" type="text">
+<label>备注</label><input id="modifyRemark" type="text">
+<button onclick="submitModify()">提交修改</button>
+<button onclick="closeModifyModal()">取消</button>
+</div>
+</div>
+
+<script>
+let tableData = [];
+let currentPage = 1;
+const pageSize = 10;
+
+function formatDate(dateString){ const d=new Date(dateString); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; }
+
+function loadData(){ fetch('http://localhost:8080/host').then(r=>r.json()).then(res=>{ tableData=res.data || []; currentPage=1; renderTable(); }); }
+
+function renderTable(){ let tbody=document.getElementById("tableBody"); tbody.innerHTML=""; let pageData=tableData.slice((currentPage-1)*pageSize,currentPage*pageSize);
+pageData.forEach(item=>{
+let tr=document.createElement("tr");
+tr.innerHTML = `
+<td>${item.id}</td>
+<td>${formatDate(item.date)}</td>
+<td>${item.financeType === 'income' ? '收入' : '支出'}</td>
+<td>${item.amount}</td>
+<td>${item.dealName}</td>
+<td>${item.remark}</td>
+<td>
+<button onclick="openModifyModal(${item.id})">修改</button>
+<button style='background:red;color:white;' onclick="deleteItem(${item.id})">删除</button>
+</td>`;
+tbody.appendChild(tr);
+});
+document.getElementById('pageInfo').innerText=`第 ${currentPage} 页 / 共 ${Math.ceil(tableData.length/pageSize)} 页`;
+}
+
+function nextPage(){ if(currentPage * pageSize < tableData.length){ currentPage++; renderTable(); } }
+function prevPage(){ if(currentPage > 1){ currentPage--; renderTable(); } }
+
+function deleteItem(id){ fetch(`http://localhost:8080/host/delete?id=${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>loadData()); }
+
+function openInsertModal(){ insertModal.style.display='block'; }
+function closeInsertModal(){ insertModal.style.display='none'; }
+function submitInsert(){ const body={date:i_date.value||null, financeType:i_type.value||null, amount:i_amount.value?Number(i_amount.value):null, dealName:i_dealName.value||null, remark:i_remark.value||null}; fetch('http://localhost:8080/host/insert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json()).then(()=>{closeInsertModal();loadData();}); }
+
+function openSearchModal(){ searchModal.style.display='block'; }
+function closeSearchModal(){ searchModal.style.display='none'; }
+function submitSearch(){ const body={ date:s_date.value||null, financeType:s_type.value||null, amount:s_amount.value?Number(s_amount.value):null, dealName:s_dealName.value||null, remark:s_remark.value||null }; fetch('http://localhost:8080/host/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json()).then(res=>{ tableData=res.data||[]; currentPage=1; renderTable(); closeSearchModal(); }); }
+
+function openModifyModal(id){ const i=tableData.find(x=>x.id===id); modifyId.value=i.id; modifyDate.value=formatDate(i.date); modifyType.value=i.financeType; modifyAmount.value=i.amount; modifyDealName.value=i.dealName; modifyRemark.value=i.remark; modifyModal.style.display='block'; }
+function closeModifyModal(){ modifyModal.style.display='none'; }
+function submitModify(){ const b={ id:Number(modifyId.value), date:modifyDate.value||null, financeType:modifyType.value||null, amount:modifyAmount.value?Number(modifyAmount.value):null, dealName:modifyDealName.value||null, remark:modifyRemark.value||null }; fetch('http://localhost:8080/host/change',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json()).then(()=>{closeModifyModal();loadData();}); }
+
+window.onload = loadData;
+</script>
+</body>
+</html>
