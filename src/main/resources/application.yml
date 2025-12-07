@@ -3,9 +3,9 @@ spring:
     name: Financial-Database
   #数据库的连接信息
   datasource:
-    url: jdbc:mysql://localhost:3306/financial
+    url: jdbc:mysql://localhost:3306/financial_database
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
+    username: admin
     password: 1234
 
 #mybatis的相关配置
