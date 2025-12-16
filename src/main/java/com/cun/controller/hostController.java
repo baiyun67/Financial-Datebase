@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/host")
 @RestController
 public class hostController {
+
     @Autowired
     private Search search;
     @GetMapping
@@ -44,10 +45,11 @@ public class hostController {
         log.warn("change-controller-begin");
         return Result.success(change.change(financial));
     }
+
     @Autowired
     private Delete delete;
     @DeleteMapping("/delete")
-    public Result deleteFinancial(@Param("id")Integer id) {
+    public Result deleteFinancial(@Param("id")Integer id){
         log.warn("delete-controller-begin");
         return Result.success(delete.delete(id));
     }
