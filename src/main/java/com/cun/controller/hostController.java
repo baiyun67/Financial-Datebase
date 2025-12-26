@@ -6,6 +6,7 @@ import com.cun.service.Change;
 import com.cun.service.Delete;
 import com.cun.service.Insert;
 import com.cun.service.Search;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,9 @@ public class hostController {
     @Autowired
     private Insert insert;
     @PostMapping("/insert")
-    public Result insertFinancial(@RequestBody Financial financial) {
+    public Result insertFinancial(@Valid @RequestBody Financial financial) {
         log.warn("insert-controller-begin");
+
         return Result.success(insert.insert(financial));
     }
 

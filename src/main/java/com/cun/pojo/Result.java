@@ -34,4 +34,11 @@ public class Result {
         result.msg="fail";
         return result;
     }
+    public static Result error(Object data){
+        Result result=new Result();
+        result.code=0;
+        result.msg="error";
+        result.data=data;
+        return result;
+    }
 }
